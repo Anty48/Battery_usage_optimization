@@ -1,0 +1,29 @@
+{
+ "normal": {
+  "score": 18.3,
+  "co2_pct": 17.25,
+  "cost_pct": 20.75,
+  "violations": 0,
+  "hours": 1725,
+  "time_s": 13.9,
+  "strict": false
+ },
+ "strict": {
+  "score": 18.2,
+  "co2_pct": 17.13,
+  "cost_pct": 20.7,
+  "violations": 0,
+  "hours": 1725,
+  "time_s": 13.9,
+  "strict": true
+ },
+ "config": {
+  "h": 24,
+  "v_frac": 1.1113630802705314,
+  "z_sigma": 0.4207876895293239,
+  "eps_export": 0.018284408880563575,
+  "best": "results/opt/best.json"
+ },
+ "zip_kb": 194.1611328125,
+ "check_ok": true
+}

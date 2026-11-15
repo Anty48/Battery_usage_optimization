@@ -1,0 +1,68 @@
+[
+ {
+  "name": "No battery",
+  "score": 0.0,
+  "co2_pct": 0,
+  "cost_pct": 0
+ },
+ {
+  "name": "Climatology only (no forecasting)",
+  "score": 15.91,
+  "co2_pct": 14.82,
+  "cost_pct": 18.47
+ },
+ {
+  "name": "Ridge forecasts only (v3a)",
+  "score": 16.74,
+  "co2_pct": 16.14,
+  "cost_pct": 18.13
+ },
+ {
+  "name": "Agent v3 (final)",
+  "score": 18.3,
+  "co2_pct": 17.25,
+  "cost_pct": 20.75,
+  "final": true
+ },
+ {
+  "name": "Agent v3, strict mode",
+  "score": 18.2,
+  "co2_pct": 17.13,
+  "cost_pct": 20.7
+ },
+ {
+  "name": "v3 with perfect lambda",
+  "score": 18.94,
+  "co2_pct": 17.99,
+  "cost_pct": 21.15,
+  "oracle": true
+ },
+ {
+  "name": "v3 with perfect net demand",
+  "score": 19.01,
+  "co2_pct": 17.84,
+  "cost_pct": 21.74,
+  "oracle": true
+ },
+ {
+  "name": "v3 with everything perfect (24 h)",
+  "score": 19.7,
+  "co2_pct": 18.69,
+  "cost_pct": 22.05,
+  "oracle": true
+ },
+ {
+  "name": "Global oracle (everything known)",
+  "score": 19.92,
+  "co2_pct": 19.0,
+  "cost_pct": 22.04,
+  "oracle": true
+ },
+ {
+  "name": "Oracle with the standard 2 MWh battery",
+  "score": 7.61,
+  "co2_pct": 7.2,
+  "cost_pct": 8.56,
+  "oracle": true
+ }
+]

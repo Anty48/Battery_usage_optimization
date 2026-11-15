@@ -1,1 +1,24 @@
-.playwright-mcp/
+# Only the final product is versioned; everything else in the folder is local working material
+# (exploratory attempts, the organisers' package and the challenge data, which are not ours to redistribute).
+/*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/requirements.txt
+!/agent/
+!/standard_mode/
+!/src/
+!/results/
+!/report/
+!/viewer/
+
+__pycache__/
+*.pyc
+results/cache/
+results/*.log
+results/opt/*.log
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+report/*.synctex.gz

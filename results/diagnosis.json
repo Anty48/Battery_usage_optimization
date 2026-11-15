@@ -1,0 +1,38 @@
+{
+ "forecast (v3)": {
+  "score": 18.3,
+  "co2_pct": 17.25,
+  "cost_pct": 20.75,
+  "violations": 0.0,
+  "hours": 1725.0,
+  "time_s": 14.0,
+  "strict": 0.0
+ },
+ "perfect lambda": {
+  "score": 18.94,
+  "co2_pct": 17.99,
+  "cost_pct": 21.15,
+  "violations": 0.0,
+  "hours": 1725.0,
+  "time_s": 13.6,
+  "strict": 0.0
+ },
+ "perfect net demand": {
+  "score": 19.01,
+  "co2_pct": 17.84,
+  "cost_pct": 21.74,
+  "violations": 0.0,
+  "hours": 1725.0,
+  "time_s": 13.0,
+  "strict": 0.0
+ },
+ "everything perfect (24 h)": {
+  "score": 19.7,
+  "co2_pct": 18.69,
+  "cost_pct": 22.05,
+  "violations": 0.0,
+  "hours": 1725.0,
+  "time_s": 12.3,
+  "strict": 0.0
+ }
+}

@@ -1,0 +1,265 @@
+<meta charset="utf-8">
+<title>Campus Battery</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f6f7f9; --surface:#ffffff; --ink:#15171c; --ink2:#4f5563; --muted:#8a8f9c; --line:#e3e6ec; --axis:#c4c9d4;
+  --demand:#2a78d6; --solar:#eb6834; --price:#1baf7a; --co2:#eda100; --battery:#4a3aa7; --discharge:#e34948; --saving:#008300; --grid:#7a8290;
+  --chip:#eef1f6; --focus:#2a78d6;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ color-scheme:dark;
+    --bg:#121417; --surface:#1b1e24; --ink:#f2f3f5; --ink2:#c0c4cc; --muted:#8a8f9c; --line:#2a2e36; --axis:#3a3f49;
+    --demand:#3987e5; --solar:#f0774a; --price:#22c08a; --co2:#f0b020; --battery:#9085e9; --discharge:#e66767; --saving:#2fbf2f; --grid:#9aa3b2; --chip:#252932; }
+}
+:root[data-theme="dark"]{ color-scheme:dark;
+  --bg:#121417; --surface:#1b1e24; --ink:#f2f3f5; --ink2:#c0c4cc; --muted:#8a8f9c; --line:#2a2e36; --axis:#3a3f49;
+  --demand:#3987e5; --solar:#f0774a; --price:#22c08a; --co2:#f0b020; --battery:#9085e9; --discharge:#e66767; --saving:#2fbf2f; --grid:#9aa3b2; --chip:#252932; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.45}
+.wrap{max-width:1180px;margin:0 auto;padding-block:16px 40px;padding-inline:16px}
+header{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 18px;margin-bottom:10px}
+header h1{font-size:20px;font-weight:600;margin:0;letter-spacing:-.01em}
+header .sub{color:var(--ink2);font-size:13px}
+.bar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+.group{display:flex;align-items:center;gap:6px}
+.group label{color:var(--ink2);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+select,button{font:inherit;color:var(--ink);background:var(--chip);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--axis)} button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+button.icon{min-width:36px;text-align:center;font-family:"IBM Plex Mono",monospace}
+input[type=range]{width:100%;accent-color:var(--battery)}
+.timebar{flex:1 1 260px;display:flex;flex-direction:column;gap:2px}
+.timebar .lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:340px 1fr;gap:12px}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.panel h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink2);margin:0 0 8px;font-weight:600}
+.clock{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.clock .hour{font-family:"IBM Plex Mono",monospace;font-size:30px;font-weight:500;font-variant-numeric:tabular-nums}
+.clock .date{color:var(--ink2);text-align:right;font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.kpi{background:var(--chip);border-radius:8px;padding:6px 8px}
+.kpi .n{font-family:"IBM Plex Mono",monospace;font-size:15px;font-variant-numeric:tabular-nums}
+.kpi .t{font-size:11px;color:var(--ink2)}
+.kpi.price .n{color:var(--price)} .kpi.co2 .n{color:var(--co2)} .kpi.lam .n{color:var(--ink)}
+.chart{position:relative;margin-top:6px}
+.chart .title{display:flex;justify-content:space-between;font-size:12px;font-weight:600;margin:0 0 2px}
+.chart .title .val{font-weight:500;color:var(--ink2);font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.chart svg{width:100%;height:auto;display:block;cursor:crosshair}
+.legend{display:flex;gap:12px;font-size:11px;color:var(--ink2);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:3px;vertical-align:middle;margin-right:4px;border-radius:2px}
+.tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 8px;font-size:12px;box-shadow:0 4px 14px rgba(0,0,0,.12);white-space:nowrap;display:none;z-index:3;font-variant-numeric:tabular-nums}
+.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media (max-width:860px){.summary{grid-template-columns:1fr}}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:right;font-size:13px}
+td:first-child,th:first-child{text-align:left;color:var(--ink2)}
+th{font-weight:600;color:var(--ink2);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.score{font-family:"IBM Plex Mono",monospace;font-size:28px;font-weight:500;color:var(--saving)}
+.help p{margin:4px 0;color:var(--ink2);font-size:13px}
+.help b{color:var(--ink)}
+.flow text{font-size:11px;fill:var(--ink2)} .flow .node{fill:var(--chip);stroke:var(--line)} .flow .kw{font-family:"IBM Plex Mono",monospace;font-size:11px;fill:var(--ink);font-weight:500}
+.flow .edge{fill:none;stroke-linecap:round;stroke-dasharray:6 7}
+@keyframes flowing{to{stroke-dashoffset:-13}} @keyframes flowingRev{to{stroke-dashoffset:13}}
+@media (prefers-reduced-motion:reduce){.flow .edge{animation:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1>Campus Battery</h1>
+  <span class="sub">Hour-by-hour viewer of the v3 agent (hard mode: 6 MWh, ±1500 kW, solar ×12, 3 h of market forecast) · pseudo-test weeks · set point u<sub>t</sub> → state E<sub>t+1</sub></span>
+</header>
+
+<div class="bar" role="toolbar" aria-label="Playback controls">
+  <div class="group"><label for="selBlock">Week</label><select id="selBlock"></select></div>
+  <div class="group" role="group" aria-label="View">
+    <button id="btnDay" aria-pressed="false">Day</button><button id="btnWeek" aria-pressed="true">Week</button>
+  </div>
+  <div class="group">
+    <button class="icon" id="btnBack" title="One hour back">◀</button>
+    <button class="icon" id="btnPlay" title="Play / pause">▶</button>
+    <button class="icon" id="btnFwd" title="One hour forward">▶|</button>
+  </div>
+  <div class="group"><label for="selSpeed">Speed</label>
+    <select id="selSpeed"><option value="0.5">0.5×</option><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select>
+  </div>
+  <div class="timebar"><input type="range" id="rng" min="0" max="167" value="0" step="1" aria-label="Hour within the week">
+    <div class="lbl"><span id="lblStart"></span><span id="lblPos"></span><span id="lblEnd"></span></div></div>
+</div>
+
+<div class="grid">
+  <div class="panel" id="panelNow">
+    <h2>Now</h2>
+    <div class="clock"><div class="hour" id="rHour">00:00</div><div class="date" id="rDate"></div></div>
+    <svg class="flow" viewBox="0 0 316 232" aria-label="Power flow diagram">
+      <defs><marker id="pf" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+      <!-- nodes -->
+      <rect class="node" x="8" y="14" width="78" height="42" rx="8"/><text x="47" y="31" text-anchor="middle">Solar</text><text class="kw" id="fS" x="47" y="47" text-anchor="middle">0 kW</text>
+      <rect class="node" x="230" y="14" width="78" height="42" rx="8"/><text x="269" y="31" text-anchor="middle">Grid</text><text class="kw" id="fR" x="269" y="47" text-anchor="middle">0 kW</text>
+      <rect class="node" x="119" y="92" width="78" height="46" rx="8"/><text x="158" y="111" text-anchor="middle">Campus</text><text class="kw" id="fD" x="158" y="128" text-anchor="middle">0 kW</text>
+      <!-- battery -->
+      <rect class="node" x="8" y="166" width="78" height="56" rx="8"/><text x="47" y="183" text-anchor="middle">Battery</text><text class="kw" id="fB" x="47" y="214" text-anchor="middle">0 kW</text>
+      <rect x="22" y="188" width="50" height="10" rx="3" fill="none" stroke="var(--axis)"/><rect id="gB" x="23" y="189" width="24" height="8" rx="2" fill="var(--battery)"/>
+      <!-- large gauge -->
+      <rect x="236" y="92" width="34" height="126" rx="6" fill="none" stroke="var(--axis)"/>
+      <rect id="gE" x="238" y="216" width="30" height="0" rx="4" fill="var(--battery)" opacity=".9"/>
+      <text class="kw" id="tE" x="253" y="86" text-anchor="middle">1000 kWh</text><text id="tEp" x="253" y="230" text-anchor="middle">50 %</text>
+      <line x1="236" y1="155" x2="270" y2="155" stroke="var(--axis)" stroke-dasharray="2 3"/>
+      <!-- edges -->
+      <path id="aS" class="edge" d="M86,40 C120,40 130,92 150,92" stroke="var(--solar)" marker-end="url(#pf)"/>
+      <path id="aR" class="edge" d="M230,40 C196,40 186,92 166,92" stroke="var(--grid)" marker-end="url(#pf)"/>
+      <path id="aB" class="edge" d="M86,194 C120,194 130,138 150,138" stroke="var(--battery)" marker-end="url(#pf)"/>
+      <text id="tFlowB" x="112" y="176" text-anchor="middle" font-size="10">idle</text>
+    </svg>
+    <div class="kpis">
+      <div class="kpi price"><div class="n" id="kPi">–</div><div class="t">price π<sub>t</sub> €/kWh</div></div>
+      <div class="kpi co2"><div class="n" id="kC">–</div><div class="t">CO₂ c<sub>t</sub> kg/kWh</div></div>
+      <div class="kpi lam"><div class="n" id="kL">–</div><div class="t">λ<sub>t</sub> = c + κ·π</div></div>
+    </div>
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kU">0</div><div class="t">set point u<sub>t</sub> kW</div></div>
+      <div class="kpi"><div class="n" id="kE1">–</div><div class="t">E<sub>t+1</sub> kWh</div></div>
+      <div class="kpi"><div class="n" id="kG">–</div><div class="t">grid with / without battery kW</div></div>
+    </div>
+  </div>
+
+  <div class="panel" id="panelCharts">
+    <h2 id="viewTitle">Week</h2>
+    <div class="legend"><span><i style="background:var(--demand)"></i>Demand D</span><span><i style="background:var(--solar)"></i>Solar S</span><span><i style="background:var(--grid)"></i>Grid with battery</span><span><i style="background:var(--battery)"></i>Battery E</span><span><i style="background:var(--discharge)"></i>Discharge</span></div>
+    <div class="chart" data-k="pot"><div class="title"><span>Power (kW)</span><span class="val"></span></div><svg viewBox="0 0 760 120"></svg></div>
+    <div class="chart" data-k="u"><div class="title"><span>Set point u<sub>t</sub> (kW) — charge up, discharge down</span><span class="val"></span></div><svg viewBox="0 0 760 95"></svg></div>
+    <div class="chart" data-k="E"><div class="title"><span>Stored energy E<sub>t</sub> (kWh)</span><span class="val"></span></div><svg viewBox="0 0 760 95"></svg></div>
+    <div class="chart" data-k="pi"><div class="title"><span>PVPC price π<sub>t</sub> (€/kWh)</span><span class="val"></span></div><svg viewBox="0 0 760 80"></svg></div>
+    <div class="chart" data-k="c"><div class="title"><span>Emission factor c<sub>t</sub> (kg CO₂/kWh)</span><span class="val"></span></div><svg viewBox="0 0 760 80"></svg></div>
+    <div class="chart" data-k="ah"><div class="title"><span>Cumulative savings vs. no battery</span><span class="val"></span></div><svg viewBox="0 0 760 95"></svg></div>
+    <div class="tip" id="tip"></div>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="panel"><h2>Week summary</h2>
+    <div style="display:flex;gap:18px;align-items:baseline;margin-bottom:6px"><span class="score" id="sScore">–</span><span style="color:var(--ink2)">points · Score = max(0, 0.70·ΔCO₂% + 0.30·ΔCost% − 0.20·violations)</span></div>
+    <table><tbody id="tbl"></tbody></table>
+  </div>
+  <div class="panel help"><h2>How to read this</h2>
+    <p><b>Every hour</b> the agent picks a set point <b>u<sub>t</sub></b>: positive charges the battery (energy drawn through the campus connection), negative discharges it into the campus. The battery responds with <b>E<sub>t+1</sub> = E<sub>t</sub> + η·u<sub>t</sub></b> when charging and <b>E<sub>t</sub> + u<sub>t</sub>/η</b> when discharging, with η = √0.9.</p>
+    <p>The grid supplies <b>P<sub>grid</sub> = D − S + u</b>. Importing costs π<sub>t</sub> and emits c<sub>t</sub>; the agent minimises the <b>effective price λ<sub>t</sub> = c<sub>t</sub> + κ·π<sub>t</sub></b> (κ = <span id="kappa"></span> kg CO₂/€), which combines both objectives with the 70/30 weights of the score.</p>
+    <p>The agent only knows the next 3 h of π and c: it <b>forecasts</b> the rest of the day (and the demand and solar) with ridge models and analog days fitted on historical data, solves a linear program with a safety margin on discharge and applies only the first hour. Hours with solar above demand are free surplus that charges the battery.</p>
+    <p>Use <b>Day</b> to follow a full cycle and <b>Week</b> to see the weekday / weekend pattern. The chart cursor and the "Now" panel are synchronised; hover over a chart to inspect any hour.</p>
+  </div>
+</div>
+</div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function(){
+const D = JSON.parse(document.getElementById('data').textContent);
+const KAPPA = D.kappa, ETA = Math.sqrt(0.9), CAP = D.cap || 2000, PMAX = D.pmax || 500;
+document.getElementById('kappa').textContent = KAPPA.toFixed(4);
+const $ = id => document.getElementById(id);
+const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const fmt = (x,d=0) => x.toLocaleString('en-GB',{minimumFractionDigits:d,maximumFractionDigits:d});
+
+let bi = 0, view = 'week', pos = 0, play = false, vel = 2, last = null, B = null;
+const sel = $('selBlock');
+D.blocks.forEach((b,i)=>{ const o=document.createElement('option'); o.value=i; const t=new Date(b.t0); o.textContent = `Week ${i+1} · ${t.getDate()} ${MONTHS[t.getMonth()]} ${t.getFullYear()} (${b.n} h)`; sel.appendChild(o); });
+try{ const g = localStorage.getItem('viewer.block'); if(g!==null && D.blocks[+g]) sel.value = g; }catch(e){}
+
+function load(){
+  bi = +sel.value; B = D.blocks[bi]; pos = Math.min(pos, B.n-1);
+  // derived series
+  B.lam = B.pi.map((p,i)=> B.c[i] + KAPPA*p);
+  B.E1 = B.E.map((e,i)=> B.u[i] >= 0 ? Math.min(CAP, e + ETA*B.u[i]) : Math.max(0, e + B.u[i]/ETA));
+  let aco=0, aeu=0; B.cumC=[]; B.cumE=[];
+  for(let i=0;i<B.n;i++){ aco += B.co2b[i]-B.co2k[i]; aeu += B.eub[i]-B.eu[i]; B.cumC.push(aco); B.cumE.push(aeu); }
+  B.dates = B.ts.map(t=>{ const d=new Date(t); return d; });
+  $('rng').max = B.n-1; $('rng').value = pos;
+  const t0 = B.dates[0], t1 = B.dates[B.n-1];
+  $('lblStart').textContent = `${DAYS[(t0.getDay()+6)%7]} ${t0.getDate()}`; $('lblEnd').textContent = `${DAYS[(t1.getDay()+6)%7]} ${t1.getDate()}`;
+  summary(); drawAll(); try{ localStorage.setItem('viewer.block', String(bi)); }catch(e){}
+}
+
+function windowRange(){ // visible indices [a,b)
+  if(view==='week') return [0, B.n];
+  const d0 = B.dates[pos]; let a = pos; while(a>0 && B.dates[a-1].getDate()===d0.getDate()) a--; let b = pos+1; while(b<B.n && B.dates[b].getDate()===d0.getDate()) b++; return [a,b];
+}
+
+// ---------- charts ----------
+const W=760, PADL=46, PADR=12, PADT=8, PADB=18;
+const charts = [...document.querySelectorAll('.chart')];
+function scale(min,max,h){ const s=(h-PADT-PADB)/((max-min)||1); return v=> h-PADB-(v-min)*s; }
+function axisY(g,min,max,h,fmtf){ const n=3; for(let i=0;i<=n;i++){ const v=min+(max-min)*i/n; const y=scale(min,max,h)(v); g.push(`<line x1="${PADL}" x2="${W-PADR}" y1="${y}" y2="${y}" stroke="${css('--line')}"/><text x="${PADL-5}" y="${y+3.5}" text-anchor="end" font-size="10" fill="${css('--muted')}">${fmtf(v)}</text>`);} }
+function axisX(g,a,b,h){ const n=b-a; const x=i=>PADL+(i-a+0.5)*(W-PADL-PADR)/n; for(let i=a;i<b;i++){ const d=B.dates[i]; const hour=d.getHours(); const label = view==='week' ? (hour===0 ? DAYS[(d.getDay()+6)%7].slice(0,3)+' '+d.getDate() : (hour===12?'12h':null)) : (hour%3===0? String(hour).padStart(2,'0')+'h' : null); if(label){ g.push(`<text x="${x(i)}" y="${h-4}" text-anchor="middle" font-size="10" fill="${css('--muted')}">${label}</text>`); if(hour===0&&view==='week') g.push(`<line x1="${x(i)-((W-PADL-PADR)/n)/2}" x2="${x(i)-((W-PADL-PADR)/n)/2}" y1="${PADT}" y2="${h-PADB}" stroke="${css('--line')}"/>`);} } }
+function line(arr,a,b,y,col,w=1.8){ const n=b-a; const x=i=>PADL+(i-a+0.5)*(W-PADL-PADR)/n; let d=''; for(let i=a;i<b;i++){ d+=(i===a?'M':'L')+x(i).toFixed(1)+','+y(arr[i]).toFixed(1);} return `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round"/>`; }
+function area(arr,a,b,y,y0,col,op=.15){ const n=b-a; const x=i=>PADL+(i-a+0.5)*(W-PADL-PADR)/n; let d=`M${x(a).toFixed(1)},${y0}`; for(let i=a;i<b;i++) d+=`L${x(i).toFixed(1)},${y(arr[i]).toFixed(1)}`; d+=`L${x(b-1).toFixed(1)},${y0}Z`; return `<path d="${d}" fill="${col}" opacity="${op}"/>`; }
+function draw(ch){
+  const k=ch.dataset.k, svg=ch.querySelector('svg'), h=+svg.getAttribute('viewBox').split(' ')[3]; const [a,b]=windowRange(); const g=[]; const n=b-a; const bw=(W-PADL-PADR)/n; const x=i=>PADL+(i-a+0.5)*bw;
+  if(k==='pot'){ const mx=Math.max(...B.D.slice(a,b),...B.g.slice(a,b))*1.08; const y=scale(0,mx,h); axisY(g,0,mx,h,v=>fmt(v)); axisX(g,a,b,h); g.push(area(B.S,a,b,y,y(0),css('--solar'),.25)); g.push(line(B.g,a,b,y,css('--grid'),1.2)); g.push(line(B.D,a,b,y,css('--demand'))); g.push(line(B.S,a,b,y,css('--solar'),1.4)); }
+  if(k==='u'){ const y=scale(-PMAX,PMAX,h); axisY(g,-PMAX,PMAX,h,v=>fmt(v)); axisX(g,a,b,h); g.push(`<line x1="${PADL}" x2="${W-PADR}" y1="${y(0)}" y2="${y(0)}" stroke="${css('--axis')}"/>`); for(let i=a;i<b;i++){ const u=B.u[i]; if(Math.abs(u)<0.5) continue; const col=u>0?css('--battery'):css('--discharge'); const y1=Math.min(y(0),y(u)), hh=Math.abs(y(0)-y(u)); g.push(`<rect x="${(x(i)-bw*0.42).toFixed(1)}" y="${y1.toFixed(1)}" width="${(bw*0.84).toFixed(1)}" height="${hh.toFixed(1)}" rx="1.5" fill="${col}"/>`);} }
+  if(k==='E'){ const y=scale(0,CAP,h); axisY(g,0,CAP,h,v=>fmt(v)); axisX(g,a,b,h); g.push(area(B.E1,a,b,y,y(0),css('--battery'),.15)); g.push(line(B.E1,a,b,y,css('--battery'))); }
+  if(k==='pi'||k==='c'){ const arr=k==='pi'?B.pi:B.c, col=css(k==='pi'?'--price':'--co2'); const mn=Math.min(...arr.slice(a,b))*0.9, mx=Math.max(...arr.slice(a,b))*1.05; const y=scale(mn,mx,h); axisY(g,mn,mx,h,v=>v.toFixed(k==='pi'?2:3)); axisX(g,a,b,h); g.push(area(arr,a,b,y,h-PADB,col,.12)); g.push(line(arr,a,b,y,col)); }
+  if(k==='ah'){ const mx=Math.max(1,...B.cumC.slice(a,b),...B.cumE.slice(a,b))*1.08, mn=Math.min(0,...B.cumC.slice(a,b),...B.cumE.slice(a,b)); const y=scale(mn,mx,h); axisY(g,mn,mx,h,v=>fmt(v)); axisX(g,a,b,h); g.push(line(B.cumE,a,b,y,css('--price'))); g.push(line(B.cumC,a,b,y,css('--co2'))); g.push(`<text x="${W-PADR}" y="${PADT+10}" text-anchor="end" font-size="10" fill="${css('--ink2')}">— CO₂ (kg)   — cost (€)</text>`); }
+  // cursor
+  g.push(`<line class="cur" x1="${x(pos)}" x2="${x(pos)}" y1="${PADT}" y2="${h-PADB}" stroke="${css('--ink')}" stroke-width="1.2" opacity=".7"/>`);
+  svg.innerHTML = g.join('');
+}
+function drawAll(){ charts.forEach(draw); updateNow(); }
+function moveCursor(){ const [a,b]=windowRange(); const n=b-a; charts.forEach(ch=>{ const svg=ch.querySelector('svg'); const x=PADL+(pos-a+0.5)*(W-PADL-PADR)/n; const l=svg.querySelector('.cur'); if(l){ l.setAttribute('x1',x); l.setAttribute('x2',x);} }); }
+
+// ---------- 'now' panel ----------
+function updateNow(){
+  const i=pos, d=B.dates[i]; const u=B.u[i], Dk=B.D[i], S=B.S[i], g=B.g[i], gb=B.gb[i], E=B.E[i], E1=B.E1[i];
+  $('rHour').textContent = String(d.getHours()).padStart(2,'0')+':00'; $('rDate').innerHTML = `${DAYS[(d.getDay()+6)%7]}<br>${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  $('fS').textContent = fmt(S)+' kW'; $('fR').textContent = fmt(g)+' kW'; $('fD').textContent = fmt(Dk)+' kW'; $('fB').textContent = (u>0?'+':'')+fmt(u)+' kW';
+  $('kPi').textContent = B.pi[i].toFixed(3); $('kC').textContent = B.c[i].toFixed(3); $('kL').textContent = B.lam[i].toFixed(3);
+  $('kU').textContent = (u>0?'+':'')+fmt(u); $('kE1').textContent = fmt(E1); $('kG').textContent = fmt(g)+' / '+fmt(gb);
+  const hgt = 124*E1/CAP; $('gE').setAttribute('height', hgt.toFixed(1)); $('gE').setAttribute('y', (216-hgt).toFixed(1)); $('tE').textContent = fmt(E1)+' kWh'; $('tEp').textContent = fmt(100*E1/CAP)+' %';
+  $('gB').setAttribute('width', (48*E1/CAP).toFixed(1));
+  const widthOf = p => Math.max(1.2, Math.min(9, p/(PMAX/5.5))); const dur = p => (p<1? 0 : Math.max(0.25, 2.2 - p/PMAX))+'s';
+  const aS=$('aS'), aR=$('aR'), aB=$('aB');
+  aS.style.strokeWidth = widthOf(S); aS.style.animation = S>1? `flowing ${dur(S)} linear infinite` : 'none'; aS.style.opacity = S>1?1:.25;
+  aR.style.strokeWidth = widthOf(g); aR.style.animation = g>1? `flowing ${dur(g)} linear infinite` : 'none'; aR.style.opacity = g>1?1:.25;
+  aB.style.strokeWidth = widthOf(Math.abs(u)); aB.style.stroke = u>0? css('--battery') : css('--discharge');
+  aB.style.animation = Math.abs(u)>1 ? `${u>0?'flowingRev':'flowing'} ${dur(Math.abs(u))} linear infinite` : 'none'; aB.style.opacity = Math.abs(u)>1?1:.25;
+  aB.setAttribute('marker-end', u>0? '' : 'url(#pf)'); aB.setAttribute('marker-start', u>0? 'url(#pf)' : '');
+  $('tFlowB').textContent = u>0 ? 'charging' : (u<0 ? 'discharging' : 'idle');
+  // values in the chart titles
+  charts.forEach(ch=>{ const k=ch.dataset.k, v=ch.querySelector('.val'); v.textContent = k==='pot'? `D ${fmt(Dk)} · S ${fmt(S)} · grid ${fmt(g)}` : k==='u'? `${u>0?'+':''}${fmt(u)} kW` : k==='E'? `${fmt(E)} → ${fmt(E1)} kWh` : k==='pi'? B.pi[i].toFixed(3)+' €/kWh' : k==='c'? B.c[i].toFixed(3)+' kg/kWh' : `${fmt(B.cumC[i])} kg · ${fmt(B.cumE[i])} €`; });
+  $('rng').value = pos; $('lblPos').textContent = `hour ${i+1} / ${B.n}`;
+  $('viewTitle').textContent = view==='week' ? 'Full week' : `Day: ${DAYS[(d.getDay()+6)%7]} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+}
+function summary(){
+  let ec=0, ed=0, co2=0, co2b=0, eu=0, eub=0, inf=0, exp=0; for(let i=0;i<B.n;i++){ if(B.u[i]>0) ec+=B.u[i]; else ed-=B.u[i]; co2+=B.co2k[i]; co2b+=B.co2b[i]; eu+=B.eu[i]; eub+=B.eub[i]; inf+=B.inf[i]; exp+=B.ex[i]; }
+  const dC = 100*(co2b-co2)/co2b, dE = 100*(eub-eu)/eub; const score = Math.max(0, 0.7*dC + 0.3*dE - 0.2*inf);
+  $('sScore').textContent = score.toFixed(2);
+  $('tbl').innerHTML = [['Simulated hours', fmt(B.n)], ['Energy charged', fmt(ec)+' kWh'], ['Energy discharged', fmt(ed)+' kWh'], ['Equivalent cycles (discharge / '+CAP+')', (ed/CAP).toFixed(2)], ['CO₂ without / with battery', `${fmt(co2b)} / ${fmt(co2)} kg`], ['CO₂ reduction', dC.toFixed(2)+' %'], ['Cost without / with battery', `${fmt(eub)} / ${fmt(eu)} €`], ['Cost savings', dE.toFixed(2)+' %'], ['Energy exported at 0 €', fmt(exp)+' kWh'], ['Violations', fmt(inf)]].map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join('');
+}
+
+// ---------- interaction ----------
+function setPos(p, redraw){ p=Math.max(0,Math.min(B.n-1,Math.round(p))); const [a,b]=windowRange(); pos=p; const [a2,b2]=windowRange(); if(redraw || view==='day' && (a2!==a||b2!==b)) drawAll(); else { moveCursor(); updateNow(); } }
+$('rng').addEventListener('input', e=> setPos(+e.target.value));
+$('btnBack').onclick = ()=> setPos(pos-1); $('btnFwd').onclick = ()=> setPos(pos+1);
+$('btnPlay').onclick = ()=>{ play=!play; $('btnPlay').textContent = play?'❚❚':'▶'; last=null; if(play) requestAnimationFrame(step); };
+$('selSpeed').onchange = e=> vel=+e.target.value;
+$('btnDay').onclick = ()=>{ view='day'; $('btnDay').setAttribute('aria-pressed','true'); $('btnWeek').setAttribute('aria-pressed','false'); drawAll(); };
+$('btnWeek').onclick = ()=>{ view='week'; $('btnWeek').setAttribute('aria-pressed','true'); $('btnDay').setAttribute('aria-pressed','false'); drawAll(); };
+sel.onchange = ()=>{ pos=0; load(); };
+let acc=0;
+function step(ts){ if(!play) return; if(last===null) last=ts; const dt=(ts-ultimo)/1000; last=ts; acc += dt*vel*1.5; /* 1x = 1.5 h per second */ while(acc>=1){ acc-=1; if(pos>=B.n-1){ play=false; $('btnPlay').textContent='▶'; break; } setPos(pos+1); } if(play) requestAnimationFrame(step); }
+// tooltip + click on charts
+const tip=$('tip'), panel=$('panelCharts');
+charts.forEach(ch=>{ const svg=ch.querySelector('svg');
+  const idxOf = ev=>{ const r=svg.getBoundingClientRect(); const xr=(ev.clientX-r.left)/r.width*W; const [a,b]=windowRange(); const i=a+Math.floor((xr-PADL)/((W-PADL-PADR)/(b-a))); return Math.max(a,Math.min(b-1,i)); };
+  svg.addEventListener('mousemove', ev=>{ const i=idxOf(ev); const d=B.dates[i]; tip.style.display='block'; const pr=panel.getBoundingClientRect(); tip.style.left=Math.min(pr.width-190, ev.clientX-pr.left+12)+'px'; tip.style.top=(ev.clientY-pr.top+12)+'px';
+    tip.innerHTML = `<b>${DAYS[(d.getDay()+6)%7]} ${d.getDate()} · ${String(d.getHours()).padStart(2,'0')}:00</b><br>D ${fmt(B.D[i])} kW · S ${fmt(B.S[i])} kW<br>u ${B.u[i]>0?'+':''}${fmt(B.u[i])} kW · E ${fmt(B.E[i])}→${fmt(B.E1[i])} kWh<br>π ${B.pi[i].toFixed(3)} €/kWh · c ${B.c[i].toFixed(3)} kg/kWh<br>λ ${B.lam[i].toFixed(3)} · grid ${fmt(B.g[i])} (no batt. ${fmt(B.gb[i])}) kW`; });
+  svg.addEventListener('mouseleave', ()=> tip.style.display='none');
+  svg.addEventListener('click', ev=> setPos(idxOf(ev)));
+});
+document.addEventListener('keydown', e=>{ if(e.target.tagName==='SELECT'||e.target.tagName==='INPUT') return; if(e.key===' '){ e.preventDefault(); $('btnPlay').click(); } if(e.key==='ArrowRight') setPos(pos+1); if(e.key==='ArrowLeft') setPos(pos-1); });
+if(window.matchMedia){ const mq=window.matchMedia('(prefers-color-scheme: dark)'); mq.addEventListener && mq.addEventListener('change', drawAll); }
+load();
+})();
+</script>
